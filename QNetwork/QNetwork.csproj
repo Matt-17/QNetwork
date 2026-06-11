@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>QNetwork</AssemblyName>
+    <RootNamespace>QNetwork</RootNamespace>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <Version>1.0.0</Version>
+    <Company>Code-iX</Company>
+    <Product>QNetwork</Product>
+    <Authors>Code-iX</Authors>
+    <Description>Live per-process network traffic monitor.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\QNetwork.Core\QNetwork.Core.csproj" />
+  </ItemGroup>
+
+</Project>

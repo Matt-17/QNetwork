@@ -1,0 +1,244 @@
+<Window x:Class="QNetwork.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:primitives="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework"
+        Title="QNetwork"
+        Icon="app.ico"
+        Width="980" Height="720"
+        MinWidth="820" MinHeight="560"
+        Background="{StaticResource WindowBrush}"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="Segoe UI" FontSize="13"
+        Loaded="Window_Loaded"
+        Closing="Window_Closing">
+    <DockPanel>
+
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="E_xit" Click="ExitMenuItem_Click"/>
+            </MenuItem>
+            <MenuItem Header="_View">
+                <MenuItem x:Name="HideIdleMenuItem"
+                          Header="_Hide idle processes"
+                          IsCheckable="True"
+                          IsChecked="True"
+                          Checked="HideIdleMenuItem_Changed"
+                          Unchecked="HideIdleMenuItem_Changed"/>
+                <Separator/>
+                <MenuItem x:Name="PauseMenuItem"
+                          Header="_Pause"
+                          IsCheckable="True"
+                          Checked="PauseMenuItem_Changed"
+                          Unchecked="PauseMenuItem_Changed"/>
+                <Separator/>
+                <MenuItem Header="_Units">
+                    <MenuItem x:Name="BytesUnitMenuItem"
+                              Header="_B/s"
+                              IsCheckable="True"
+                              Click="UnitMenuItem_Click"/>
+                    <MenuItem x:Name="KibUnitMenuItem"
+                              Header="_KiB/s"
+                              IsCheckable="True"
+                              IsChecked="True"
+                              Click="UnitMenuItem_Click"/>
+                    <MenuItem x:Name="MibUnitMenuItem"
+                              Header="_MiB/s"
+                              IsCheckable="True"
+                              Click="UnitMenuItem_Click"/>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem Header="_About QNetwork" Click="AboutMenuItem_Click"/>
+            </MenuItem>
+        </Menu>
+
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem>
+                <TextBlock x:Name="StatusText"/>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem>
+                <TextBlock Text="Requires administrator rights for ETW kernel tracing."/>
+            </StatusBarItem>
+            <StatusBarItem HorizontalAlignment="Right">
+                <primitives:ResizeGrip/>
+            </StatusBarItem>
+        </StatusBar>
+
+        <Grid Margin="20,16,20,16">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Margin="0,0,0,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="QNetwork"
+                               FontSize="28"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource TextBrush}"/>
+                    <TextBlock Text="Live per-process network traffic"
+                               Style="{StaticResource Hint}"
+                               Margin="0,2,0,0"/>
+                </StackPanel>
+            </Grid>
+
+            <Grid Grid.Row="1" Margin="0,0,0,14">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Style="{StaticResource Card}" Margin="0,0,12,0">
+                    <StackPanel>
+                        <TextBlock Text="Download" Style="{StaticResource Hint}"/>
+                        <TextBlock x:Name="DownloadText"
+                                   Text="0.0 KiB/s"
+                                   Style="{StaticResource MetricValue}"
+                                   Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="1" Style="{StaticResource Card}" Margin="0,0,12,0">
+                    <StackPanel>
+                        <TextBlock Text="Upload" Style="{StaticResource Hint}"/>
+                        <TextBlock x:Name="UploadText"
+                                   Text="0.0 KiB/s"
+                                   Style="{StaticResource MetricValue}"
+                                   Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="Visible processes" Style="{StaticResource Hint}"/>
+                        <TextBlock x:Name="ProcessCountText"
+                                   Text="0"
+                                   Style="{StaticResource MetricValue}"
+                                   Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Border Grid.Row="2" Style="{StaticResource Card}">
+                <DockPanel>
+                    <Grid DockPanel.Dock="Top" Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox x:Name="SearchBox"
+                                 Grid.Column="0"
+                                 Style="{StaticResource EntryBox}"
+                                 MinWidth="220"
+                                 VerticalAlignment="Center"
+                                 TextChanged="SearchBox_TextChanged"/>
+
+                        <TextBlock Grid.Column="0"
+                                   Text="Search process name"
+                                   Foreground="#9CA3AF"
+                                   Margin="10,0,0,0"
+                                   VerticalAlignment="Center"
+                                   IsHitTestVisible="False">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Text, ElementName=SearchBox}" Value="">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+
+                        <CheckBox x:Name="HideIdleCheckBox"
+                                  Grid.Column="1"
+                                  Content="Hide idle"
+                                  IsChecked="True"
+                                  VerticalAlignment="Center"
+                                  Margin="12,0,0,0"
+                                  Checked="FilterControl_Changed"
+                                  Unchecked="FilterControl_Changed"/>
+
+                        <ComboBox x:Name="UnitCombo"
+                                  Grid.Column="2"
+                                  Style="{StaticResource ComboBoxInput}"
+                                  Margin="12,0,0,0"
+                                  SelectionChanged="UnitCombo_SelectionChanged"/>
+
+                        <Button x:Name="PauseButton"
+                                Grid.Column="3"
+                                Style="{StaticResource FlatButton}"
+                                Content="Pause"
+                                Margin="12,0,0,0"
+                                Click="PauseButton_Click"/>
+                    </Grid>
+
+                    <DataGrid x:Name="TrafficGrid"
+                              Style="{StaticResource TrafficGrid}"
+                              ItemsSource="{Binding Rows}"
+                              Sorting="TrafficGrid_Sorting">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn x:Name="PidColumn"
+                                                Header="PID"
+                                                Binding="{Binding Pid}"
+                                                SortMemberPath="Pid"
+                                                Width="82"/>
+                            <DataGridTextColumn x:Name="ProcessColumn"
+                                                Header="Process"
+                                                Binding="{Binding ProcessName}"
+                                                SortMemberPath="ProcessName"
+                                                Width="*"
+                                                MinWidth="180"/>
+                            <DataGridTextColumn x:Name="DownloadColumn"
+                                                Header="Download KiB/s"
+                                                Binding="{Binding DownloadPerSecond, StringFormat={}{0:N1}}"
+                                                SortMemberPath="DownloadPerSecond"
+                                                Width="150">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="TextAlignment" Value="Right"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn x:Name="UploadColumn"
+                                                Header="Upload KiB/s"
+                                                Binding="{Binding UploadPerSecond, StringFormat={}{0:N1}}"
+                                                SortMemberPath="UploadPerSecond"
+                                                Width="140">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="TextAlignment" Value="Right"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn x:Name="TotalColumn"
+                                                Header="Total KiB/s"
+                                                Binding="{Binding TotalPerSecond, StringFormat={}{0:N1}}"
+                                                SortMemberPath="TotalPerSecond"
+                                                Width="130">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="TextAlignment" Value="Right"/>
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </DockPanel>
+</Window>

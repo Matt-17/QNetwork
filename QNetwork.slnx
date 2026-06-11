@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="QNetwork.Core/QNetwork.Core.csproj" />
+  <Project Path="QNetwork/QNetwork.csproj" />
+  <Project Path="QNetwork.Cli/QNetwork.Cli.csproj" />
+</Solution>
