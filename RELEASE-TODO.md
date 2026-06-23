@@ -13,29 +13,29 @@ Scope: publish QNetwork through winget only. The public installer should be a ve
 
 ## Project Updates
 
-- [ ] Verify all projects are intentionally on .NET 10:
+- [x] Verify all projects are intentionally on .NET 10:
   - `QNetwork/QNetwork.csproj`: `net10.0-windows`.
   - `QNetwork.Core/QNetwork.Core.csproj`: `net10.0`.
   - `QNetwork.Cli/QNetwork.Cli.csproj`: `net10.0`.
   - `QNetwork.Tests/QNetwork.Tests.csproj`: `net10.0`.
-- [ ] Keep application metadata aligned:
+- [x] Keep application metadata aligned:
   - Product: `QNetwork`.
   - Company/manufacturer/publisher: `Code-iX`.
   - License: MIT.
   - Version: supplied by the release tag.
-- [ ] Replace placeholder app metadata before release:
+- [x] Replace placeholder app metadata before release:
   - About window GitHub value.
   - README title-only content.
   - Any feature claims that are not currently shipped.
 
 ## Installer
 
-- [ ] Keep WiX project at `QNetwork.Installer/QNetwork.Installer.wixproj`.
-- [ ] Keep WiX package source at `QNetwork.Installer/Package.wxs`.
-- [ ] Do not change `UpgradeCode="{60C7E0F4-0162-43B9-A56C-8ED103F94A90}"`.
-- [ ] Ensure installer build consumes the self-contained publish output.
-- [ ] Ensure release asset name is exactly `QNetwork-X.Y.Z-x64.msi`.
-- [ ] Validate generated MSI values:
+- [x] Keep WiX project at `QNetwork.Installer/QNetwork.Installer.wixproj`.
+- [x] Keep WiX package source at `QNetwork.Installer/Package.wxs`.
+- [x] Do not change `UpgradeCode="{60C7E0F4-0162-43B9-A56C-8ED103F94A90}"`.
+- [x] Ensure installer build consumes the self-contained publish output.
+- [x] Ensure release asset name is exactly `QNetwork-X.Y.Z-x64.msi`.
+- [x] Validate generated MSI values:
   - Product name `QNetwork`.
   - Manufacturer `Code-iX`.
   - Version `X.Y.Z`.
@@ -45,16 +45,16 @@ Scope: publish QNetwork through winget only. The public installer should be a ve
 
 ## GitHub Actions
 
-- [ ] Split the current `.github/workflows/build.yml` into:
+- [x] Split the current `.github/workflows/build.yml` into:
   - `.github/workflows/ci.yml` for branch and pull request validation.
   - `.github/workflows/release.yml` for `v*` tags.
-- [ ] CI workflow should:
+- [x] CI workflow should:
   - Restore.
   - Build.
   - Test.
   - Publish self-contained `win-x64`.
   - Build the MSI as an installer-source validation step.
-- [ ] Release workflow should:
+- [x] Release workflow should:
   - Derive `X.Y.Z` from tag `vX.Y.Z`.
   - Run tests in Release configuration.
   - Publish self-contained `win-x64`.

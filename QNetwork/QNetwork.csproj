@@ -11,7 +11,8 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\qnetwork-logo-transparent.ico</ApplicationIcon>
-    <Version>1.0.0</Version>
+    <Version Condition="'$(ProductVersion)' != ''">$(ProductVersion)</Version>
+    <Version Condition="'$(ProductVersion)' == ''">1.0.0</Version>
     <Company>Code-iX</Company>
     <Product>QNetwork</Product>
     <Authors>Code-iX</Authors>

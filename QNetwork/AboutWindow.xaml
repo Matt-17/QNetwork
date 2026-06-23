@@ -5,6 +5,7 @@
         Width="520"
         Height="420"
         ResizeMode="NoResize"
+        SizeToContent="Height"        
         WindowStartupLocation="CenterOwner"
         Icon="/Assets/qnetwork-logo-transparent.ico" 
         Background="{StaticResource WindowBrush}">
@@ -13,11 +14,15 @@
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="Foreground" Value="{StaticResource MutedBrush}"/>
             <Setter Property="Margin" Value="0,6,0,1"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
         <Style x:Key="DetailValue" TargetType="TextBlock">
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
     </Window.Resources>
 
@@ -47,7 +52,7 @@
 
         <Border Grid.Row="1" Style="{StaticResource Card}">
             <StackPanel>
-                <TextBlock Text="About" Style="{StaticResource SectionTitle}"/>
+                <TextBlock Text="About" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
                 <TextBlock Margin="0,8,0,0"
                            Style="{StaticResource Hint}"
                            Text="QNetwork monitors live per-process network traffic with Windows ETW kernel events. It is built for quick inspection of active processes, traffic rates, session totals, peaks, and open connections."/>
@@ -72,9 +77,15 @@
                     <TextBlock Grid.Row="1" Grid.Column="0" Text="Company" Style="{StaticResource DetailLabel}"/>
                     <TextBlock Grid.Row="1" Grid.Column="1" Text="Code-iX" Style="{StaticResource DetailValue}"/>
                     <TextBlock Grid.Row="2" Grid.Column="0" Text="Copyright" Style="{StaticResource DetailLabel}"/>
-                    <TextBlock Grid.Row="2" Grid.Column="1" Text="2026 Matthias Voigt" Style="{StaticResource DetailValue}"/>
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="© 2026 Matthias Voigt" Style="{StaticResource DetailValue}"/>
                     <TextBlock Grid.Row="3" Grid.Column="0" Text="GitHub" Style="{StaticResource DetailLabel}"/>
-                    <TextBlock Grid.Row="3" Grid.Column="1" Text="Link later" Style="{StaticResource DetailValue}"/>
+                    <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource DetailValue}">
+                        <Hyperlink NavigateUri="https://github.com/Matt-17/QNetwork"
+                                   RequestNavigate="GitHubLink_RequestNavigate"
+                                   TextDecorations="None">
+                            https://github.com/Matt-17/QNetwork
+                        </Hyperlink>
+                    </TextBlock>
                 </Grid>
             </StackPanel>
         </Border>

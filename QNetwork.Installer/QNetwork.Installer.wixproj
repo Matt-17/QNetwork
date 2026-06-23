@@ -1,7 +1,7 @@
 <Project Sdk="WixToolset.Sdk/5.0.2">
 
   <PropertyGroup>
-    <OutputName>QNetwork-Installer</OutputName>
+    <OutputName>QNetwork-$(ProductVersion)-x64</OutputName>
     <OutputType>Package</OutputType>
     <Platform>x64</Platform>
     <ProductVersion Condition="'$(ProductVersion)' == ''">1.0.0</ProductVersion>
