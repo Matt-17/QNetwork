@@ -24,10 +24,10 @@ jobs:
         run: dotnet restore QNetwork.slnx
 
       - name: Build
-        run: dotnet build QNetwork.slnx --configuration Release --no-restore
+        run: dotnet build QNetwork.slnx --configuration Release --no-restore --disable-build-servers /p:UseSharedCompilation=false
 
       - name: Test
-        run: dotnet test QNetwork.slnx --configuration Release --no-build
+        run: dotnet test QNetwork.slnx --configuration Release --no-build --disable-build-servers
 
       - name: Publish app
         run: >
@@ -37,6 +37,8 @@ jobs:
           --self-contained true
           -p:PublishSingleFile=true
           -p:PublishReadyToRun=false
+          -p:UseSharedCompilation=false
+          --disable-build-servers
           --output artifacts/publish/QNetwork/Release/win-x64
 
       - name: Build MSI

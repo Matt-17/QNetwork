@@ -62,7 +62,7 @@ Scope: publish QNetwork through winget only. The public installer should be a ve
   - Create a GitHub Release.
   - Upload only the winget-targeted MSI as the distribution asset.
   - Submit/update `Code-iX.QNetwork` in winget after the initial package exists.
-- [ ] Add required repository secret:
+- [x] Add required repository secret:
   - `WINGET_TOKEN`, if using `winget-releaser`.
 
 ## Winget

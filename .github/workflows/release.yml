@@ -41,10 +41,10 @@ jobs:
         run: dotnet restore QNetwork.slnx
 
       - name: Build
-        run: dotnet build QNetwork.slnx --configuration Release --no-restore
+        run: dotnet build QNetwork.slnx --configuration Release --no-restore --disable-build-servers /p:UseSharedCompilation=false
 
       - name: Test
-        run: dotnet test QNetwork.slnx --configuration Release --no-build
+        run: dotnet test QNetwork.slnx --configuration Release --no-build --disable-build-servers
 
       - name: Build and publish win-x64 app
         run: >
@@ -55,6 +55,8 @@ jobs:
           -p:PublishSingleFile=true
           -p:PublishReadyToRun=false
           -p:ProductVersion=${{ steps.resolve_version.outputs.version }}
+          -p:UseSharedCompilation=false
+          --disable-build-servers
           --output artifacts/publish/QNetwork/Release/win-x64
 
       - name: Build MSI
