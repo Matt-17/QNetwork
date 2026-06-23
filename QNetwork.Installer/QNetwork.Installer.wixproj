@@ -1,0 +1,18 @@
+<Project Sdk="WixToolset.Sdk/5.0.2">
+
+  <PropertyGroup>
+    <OutputName>QNetwork-Installer</OutputName>
+    <OutputType>Package</OutputType>
+    <Platform>x64</Platform>
+    <ProductVersion Condition="'$(ProductVersion)' == ''">1.0.0</ProductVersion>
+    <PublishDir>$(MSBuildThisFileDirectory)..\artifacts\publish\QNetwork\$(Configuration)\win-x64\</PublishDir>
+    <DefineConstants>PublishDir=$(PublishDir);ProductVersion=$(ProductVersion)</DefineConstants>
+  </PropertyGroup>
+
+  <Target Name="PublishQNetworkForInstaller" BeforeTargets="BeforeBuild">
+    <MSBuild Projects="..\QNetwork\QNetwork.csproj"
+             Targets="Restore;Publish"
+             Properties="Configuration=$(Configuration);RuntimeIdentifier=win-x64;SelfContained=true;PublishSingleFile=true;PublishReadyToRun=false;PublishDir=$(PublishDir)" />
+  </Target>
+
+</Project>

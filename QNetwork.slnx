@@ -2,4 +2,8 @@
   <Project Path="QNetwork.Core/QNetwork.Core.csproj" />
   <Project Path="QNetwork/QNetwork.csproj" />
   <Project Path="QNetwork.Cli/QNetwork.Cli.csproj" />
+  <Project Path="QNetwork.Installer/QNetwork.Installer.wixproj" Type="b7dd6f7e-def8-4e67-b5b7-07ef123db6f0">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="QNetwork.Tests/QNetwork.Tests.csproj" />
 </Solution>

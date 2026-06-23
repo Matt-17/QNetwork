@@ -1,0 +1,90 @@
+<Window x:Class="QNetwork.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="About QNetwork"
+        Width="520"
+        Height="420"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        Icon="/Assets/qnetwork-logo-transparent.ico" 
+        Background="{StaticResource WindowBrush}">
+    <Window.Resources>
+        <Style x:Key="DetailLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="{StaticResource MutedBrush}"/>
+            <Setter Property="Margin" Value="0,6,0,1"/>
+        </Style>
+        <Style x:Key="DetailValue" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="0,0,0,18">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Width="64" Height="64" CornerRadius="12" Background="White" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1">
+                <Image Source="/Assets/qnetwork-logo-transparent.png" Stretch="Uniform" RenderOptions.BitmapScalingMode="Fant" />
+            </Border>
+
+            <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                <TextBlock Text="QNetwork" FontSize="24" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
+                <TextBlock Text="Live per-process network traffic monitor" Style="{StaticResource Hint}" Margin="0,2,0,0"/>
+                <TextBlock Text="Code-iX" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" Margin="0,8,0,0"/>
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="1" Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock Text="About" Style="{StaticResource SectionTitle}"/>
+                <TextBlock Margin="0,8,0,0"
+                           Style="{StaticResource Hint}"
+                           Text="QNetwork monitors live per-process network traffic with Windows ETW kernel events. It is built for quick inspection of active processes, traffic rates, session totals, peaks, and open connections."/>
+
+                <TextBlock Text="Included" Style="{StaticResource SectionTitle}" Margin="0,18,0,0"/>
+                <TextBlock Margin="0,8,0,0" Style="{StaticResource Hint}" Text="History chart, process grouping, adapter filtering, threshold alerts, tray mode, process details, icons, and CSV export."/>
+
+                <Grid Margin="0,18,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="130"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Author" Style="{StaticResource DetailLabel}"/>
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="Matthias Voigt" Style="{StaticResource DetailValue}"/>
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Company" Style="{StaticResource DetailLabel}"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="Code-iX" Style="{StaticResource DetailValue}"/>
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Copyright" Style="{StaticResource DetailLabel}"/>
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="2026 Matthias Voigt" Style="{StaticResource DetailValue}"/>
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="GitHub" Style="{StaticResource DetailLabel}"/>
+                    <TextBlock Grid.Row="3" Grid.Column="1" Text="Link later" Style="{StaticResource DetailValue}"/>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <Button Grid.Row="2"
+                Content="Close"
+                Width="90"
+                HorizontalAlignment="Right"
+                Margin="0,16,0,0"
+                Style="{StaticResource PrimaryButton}"
+                Click="Close_Click"/>
+    </Grid>
+</Window>

@@ -3,54 +3,79 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:primitives="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework"
         Title="QNetwork"
-        Icon="app.ico"
-        Width="980" Height="720"
+        Icon="/Assets/qnetwork-logo-transparent.ico"
+        Width="1100" Height="760"
         MinWidth="820" MinHeight="560"
+        ResizeMode="CanResizeWithGrip"
         Background="{StaticResource WindowBrush}"
         WindowStartupLocation="CenterScreen"
         FontFamily="Segoe UI" FontSize="13"
         Loaded="Window_Loaded"
-        Closing="Window_Closing">
-    <DockPanel>
+        Closing="Window_Closing"
+        StateChanged="Window_StateChanged">
 
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <Style x:Key="DetailLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="{StaticResource MutedBrush}"/>
+            <Setter Property="Margin" Value="0,6,0,1"/>
+        </Style>
+        <Style x:Key="DetailValue" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+        <Style x:Key="CopyButton" TargetType="Button" BasedOn="{StaticResource FlatButton}">
+            <Setter Property="Padding" Value="6,3"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Margin" Value="0,4,0,0"/>
+        </Style>
+    </Window.Resources>
+
+    <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
+                <MenuItem Header="Export _CSV..." Click="ExportCsvMenuItem_Click"/>
+                <Separator/>
                 <MenuItem Header="E_xit" Click="ExitMenuItem_Click"/>
             </MenuItem>
             <MenuItem Header="_View">
-                <MenuItem x:Name="HideIdleMenuItem"
-                          Header="_Hide idle processes"
-                          IsCheckable="True"
-                          IsChecked="True"
-                          Checked="HideIdleMenuItem_Changed"
-                          Unchecked="HideIdleMenuItem_Changed"/>
+                <MenuItem x:Name="HideIdleMenuItem" Header="_Hide idle processes" IsCheckable="True" IsChecked="True" Checked="HideIdleMenuItem_Changed" Unchecked="HideIdleMenuItem_Changed"/>
+                <MenuItem x:Name="GroupByNameMenuItem" Header="_Group by process name" IsCheckable="True" Checked="GroupByNameMenuItem_Changed" Unchecked="GroupByNameMenuItem_Changed"/>
+                <MenuItem x:Name="ShowChartMenuItem" Header="Show _chart" IsCheckable="True" IsChecked="True" Checked="ShowChartMenuItem_Changed" Unchecked="ShowChartMenuItem_Changed"/>
                 <Separator/>
-                <MenuItem x:Name="PauseMenuItem"
-                          Header="_Pause"
-                          IsCheckable="True"
-                          Checked="PauseMenuItem_Changed"
-                          Unchecked="PauseMenuItem_Changed"/>
+                <MenuItem x:Name="PauseMenuItem" Header="_Pause" IsCheckable="True" Checked="PauseMenuItem_Changed" Unchecked="PauseMenuItem_Changed"/>
+                <Separator/>
+                <MenuItem Header="_Columns">
+                    <MenuItem x:Name="ShowTotalDownloadMenuItem" Header="Total _downloaded" IsCheckable="True" Checked="ColumnVisibilityMenuItem_Changed" Unchecked="ColumnVisibilityMenuItem_Changed"/>
+                    <MenuItem x:Name="ShowTotalUploadMenuItem" Header="Total _uploaded" IsCheckable="True" Checked="ColumnVisibilityMenuItem_Changed" Unchecked="ColumnVisibilityMenuItem_Changed"/>
+                    <MenuItem x:Name="ShowPeakDownloadMenuItem" Header="_Peak download" IsCheckable="True" Checked="ColumnVisibilityMenuItem_Changed" Unchecked="ColumnVisibilityMenuItem_Changed"/>
+                    <MenuItem x:Name="ShowPeakUploadMenuItem" Header="Peak _upload" IsCheckable="True" Checked="ColumnVisibilityMenuItem_Changed" Unchecked="ColumnVisibilityMenuItem_Changed"/>
+                    <MenuItem x:Name="ShowIconsMenuItem" Header="Process _icons" IsCheckable="True" Checked="ColumnVisibilityMenuItem_Changed" Unchecked="ColumnVisibilityMenuItem_Changed"/>
+                </MenuItem>
                 <Separator/>
                 <MenuItem Header="_Units">
-                    <MenuItem x:Name="BytesUnitMenuItem"
-                              Header="_B/s"
-                              IsCheckable="True"
-                              Click="UnitMenuItem_Click"/>
-                    <MenuItem x:Name="KibUnitMenuItem"
-                              Header="_KiB/s"
-                              IsCheckable="True"
-                              IsChecked="True"
-                              Click="UnitMenuItem_Click"/>
-                    <MenuItem x:Name="MibUnitMenuItem"
-                              Header="_MiB/s"
-                              IsCheckable="True"
-                              Click="UnitMenuItem_Click"/>
+                    <MenuItem x:Name="BytesUnitMenuItem" Header="_B/s" IsCheckable="True" Click="UnitMenuItem_Click"/>
+                    <MenuItem x:Name="KibUnitMenuItem" Header="_KiB/s" IsCheckable="True" IsChecked="True" Click="UnitMenuItem_Click"/>
+                    <MenuItem x:Name="MibUnitMenuItem" Header="_MiB/s" IsCheckable="True" Click="UnitMenuItem_Click"/>
                 </MenuItem>
+                <Separator/>
+                <MenuItem x:Name="MinimizeToTrayMenuItem" Header="_Minimize to tray" IsCheckable="True" Checked="MinimizeToTrayMenuItem_Changed" Unchecked="MinimizeToTrayMenuItem_Changed"/>
             </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="_About QNetwork" Click="AboutMenuItem_Click"/>
             </MenuItem>
         </Menu>
+
+        <ToolBar DockPanel.Dock="Top" Band="0" BandIndex="0">
+            <Label Content="Adapter:" VerticalAlignment="Center"/>
+            <ComboBox x:Name="AdapterCombo" MinWidth="160" VerticalContentAlignment="Center" SelectionChanged="AdapterCombo_SelectionChanged"/>
+            <Separator/>
+            <Label Content="Alert threshold:" VerticalAlignment="Center"/>
+            <TextBox x:Name="ThresholdBox" Width="60" VerticalContentAlignment="Center" ToolTip="Set to 0 to disable. Fires when total traffic exceeds this rate." TextChanged="ThresholdBox_TextChanged"/>
+            <ComboBox x:Name="ThresholdUnitCombo" MinWidth="80" VerticalContentAlignment="Center" SelectionChanged="ThresholdUnitCombo_SelectionChanged"/>
+        </ToolBar>
 
         <StatusBar DockPanel.Dock="Bottom">
             <StatusBarItem>
@@ -58,187 +83,258 @@
             </StatusBarItem>
             <Separator/>
             <StatusBarItem>
-                <TextBlock Text="Requires administrator rights for ETW kernel tracing."/>
-            </StatusBarItem>
-            <StatusBarItem HorizontalAlignment="Right">
-                <primitives:ResizeGrip/>
+                <TextBlock x:Name="AlertStatusText" Foreground="OrangeRed" FontWeight="SemiBold"/>
             </StatusBarItem>
         </StatusBar>
 
-        <Grid Margin="20,16,20,16">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+        <TabControl x:Name="MainTabControl" Margin="12,6,12,12" SelectionChanged="MainTabControl_SelectionChanged">
+            <TabItem Header="Traffic">
+                <Grid Margin="0,8,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition x:Name="ChartRow" Height="160"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
 
-            <Grid Grid.Row="0" Margin="0,0,0,16">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <StackPanel Grid.Column="0">
-                    <TextBlock Text="QNetwork"
-                               FontSize="28"
-                               FontWeight="SemiBold"
-                               Foreground="{StaticResource TextBrush}"/>
-                    <TextBlock Text="Live per-process network traffic"
-                               Style="{StaticResource Hint}"
-                               Margin="0,2,0,0"/>
-                </StackPanel>
-            </Grid>
-
-            <Grid Grid.Row="1" Margin="0,0,0,14">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <Border Grid.Column="0" Style="{StaticResource Card}" Margin="0,0,12,0">
-                    <StackPanel>
-                        <TextBlock Text="Download" Style="{StaticResource Hint}"/>
-                        <TextBlock x:Name="DownloadText"
-                                   Text="0.0 KiB/s"
-                                   Style="{StaticResource MetricValue}"
-                                   Margin="0,4,0,0"/>
-                    </StackPanel>
-                </Border>
-
-                <Border Grid.Column="1" Style="{StaticResource Card}" Margin="0,0,12,0">
-                    <StackPanel>
-                        <TextBlock Text="Upload" Style="{StaticResource Hint}"/>
-                        <TextBlock x:Name="UploadText"
-                                   Text="0.0 KiB/s"
-                                   Style="{StaticResource MetricValue}"
-                                   Margin="0,4,0,0"/>
-                    </StackPanel>
-                </Border>
-
-                <Border Grid.Column="2" Style="{StaticResource Card}">
-                    <StackPanel>
-                        <TextBlock Text="Visible processes" Style="{StaticResource Hint}"/>
-                        <TextBlock x:Name="ProcessCountText"
-                                   Text="0"
-                                   Style="{StaticResource MetricValue}"
-                                   Margin="0,4,0,0"/>
-                    </StackPanel>
-                </Border>
-            </Grid>
-
-            <Border Grid.Row="2" Style="{StaticResource Card}">
-                <DockPanel>
-                    <Grid DockPanel.Dock="Top" Margin="0,0,0,12">
+                    <Grid Grid.Row="0" Margin="12,0,12,10">
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-
-                        <TextBox x:Name="SearchBox"
-                                 Grid.Column="0"
-                                 Style="{StaticResource EntryBox}"
-                                 MinWidth="220"
-                                 VerticalAlignment="Center"
-                                 TextChanged="SearchBox_TextChanged"/>
-
-                        <TextBlock Grid.Column="0"
-                                   Text="Search process name"
-                                   Foreground="#9CA3AF"
-                                   Margin="10,0,0,0"
-                                   VerticalAlignment="Center"
-                                   IsHitTestVisible="False">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Text, ElementName=SearchBox}" Value="">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-
-                        <CheckBox x:Name="HideIdleCheckBox"
-                                  Grid.Column="1"
-                                  Content="Hide idle"
-                                  IsChecked="True"
-                                  VerticalAlignment="Center"
-                                  Margin="12,0,0,0"
-                                  Checked="FilterControl_Changed"
-                                  Unchecked="FilterControl_Changed"/>
-
-                        <ComboBox x:Name="UnitCombo"
-                                  Grid.Column="2"
-                                  Style="{StaticResource ComboBoxInput}"
-                                  Margin="12,0,0,0"
-                                  SelectionChanged="UnitCombo_SelectionChanged"/>
-
-                        <Button x:Name="PauseButton"
-                                Grid.Column="3"
-                                Style="{StaticResource FlatButton}"
-                                Content="Pause"
-                                Margin="12,0,0,0"
-                                Click="PauseButton_Click"/>
+                        <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                            <TextBlock Text="QNetwork" FontSize="24" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
+                            <TextBlock Text="Live per-process network traffic" Style="{StaticResource Hint}" Margin="0,2,0,0"/>
+                        </StackPanel>
+                        <Border Grid.Column="2" Style="{StaticResource Card}" Margin="6,0">
+                            <StackPanel>
+                                <TextBlock Text="Download" Style="{StaticResource Hint}"/>
+                                <TextBlock x:Name="DownloadText" Text="0.0 KiB/s" Style="{StaticResource MetricValue}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Column="3" Style="{StaticResource Card}" Margin="6,0">
+                            <StackPanel>
+                                <TextBlock Text="Upload" Style="{StaticResource Hint}"/>
+                                <TextBlock x:Name="UploadText" Text="0.0 KiB/s" Style="{StaticResource MetricValue}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Column="4" Style="{StaticResource Card}" Margin="6,0">
+                            <StackPanel>
+                                <TextBlock Text="Processes" Style="{StaticResource Hint}"/>
+                                <TextBlock x:Name="ProcessCountText" Text="0" Style="{StaticResource MetricValue}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Column="5" Style="{StaticResource Card}" Margin="6,0,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Uptime" Style="{StaticResource Hint}"/>
+                                <TextBlock x:Name="UptimeText" Text="00:00:00" Style="{StaticResource MetricValue}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Column="1" Style="{StaticResource Card}" Margin="6,0">
+                            <StackPanel>
+                                <TextBlock Text="Top process" Style="{StaticResource Hint}"/>
+                                <TextBlock x:Name="TopProcessText" Text="none" Style="{StaticResource SectionTitle}" Margin="0,6,0,0"/>
+                            </StackPanel>
+                        </Border>
                     </Grid>
 
-                    <DataGrid x:Name="TrafficGrid"
-                              Style="{StaticResource TrafficGrid}"
-                              ItemsSource="{Binding Rows}"
-                              Sorting="TrafficGrid_Sorting">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn x:Name="PidColumn"
-                                                Header="PID"
-                                                Binding="{Binding Pid}"
-                                                SortMemberPath="Pid"
-                                                Width="82"/>
-                            <DataGridTextColumn x:Name="ProcessColumn"
-                                                Header="Process"
-                                                Binding="{Binding ProcessName}"
-                                                SortMemberPath="ProcessName"
-                                                Width="*"
-                                                MinWidth="180"/>
-                            <DataGridTextColumn x:Name="DownloadColumn"
-                                                Header="Download KiB/s"
-                                                Binding="{Binding DownloadPerSecond, StringFormat={}{0:N1}}"
-                                                SortMemberPath="DownloadPerSecond"
-                                                Width="150">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="TextAlignment" Value="Right"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-                            <DataGridTextColumn x:Name="UploadColumn"
-                                                Header="Upload KiB/s"
-                                                Binding="{Binding UploadPerSecond, StringFormat={}{0:N1}}"
-                                                SortMemberPath="UploadPerSecond"
-                                                Width="140">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="TextAlignment" Value="Right"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-                            <DataGridTextColumn x:Name="TotalColumn"
-                                                Header="Total KiB/s"
-                                                Binding="{Binding TotalPerSecond, StringFormat={}{0:N1}}"
-                                                SortMemberPath="TotalPerSecond"
-                                                Width="130">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="TextAlignment" Value="Right"/>
-                                        <Setter Property="FontWeight" Value="SemiBold"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </DockPanel>
-            </Border>
-        </Grid>
+                    <TextBlock Grid.Row="1" Margin="12,0,12,4" x:Name="ChartTitleText" Text="Traffic history (last 60 s)" Style="{StaticResource Hint}" VerticalAlignment="Center"/>
+
+                    <Border Grid.Row="2" Style="{StaticResource Card}" Margin="12,0,12,8" x:Name="ChartBorder">
+                        <Canvas x:Name="HistoryCanvas" ClipToBounds="True" SizeChanged="HistoryCanvas_SizeChanged"/>
+                    </Border>
+
+                    <Border Grid.Row="3" Style="{StaticResource Card}" Padding="0">
+                        <DockPanel>
+                            <Grid DockPanel.Dock="Top" Margin="12,10,12,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="SearchBox" Grid.Column="0" Style="{StaticResource EntryBox}" MinWidth="180" VerticalAlignment="Center" TextChanged="SearchBox_TextChanged"/>
+                                <TextBlock Grid.Column="0" Text="Search process name" Foreground="#9CA3AF" Margin="10,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Text, ElementName=SearchBox}" Value="">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <CheckBox x:Name="HideIdleCheckBox" Grid.Column="1" Content="Hide idle" IsChecked="True" VerticalAlignment="Center" Margin="10,0,0,0" Checked="FilterControl_Changed" Unchecked="FilterControl_Changed"/>
+                                <ComboBox x:Name="UnitCombo" Grid.Column="2" Style="{StaticResource ComboBoxInput}" Margin="10,0,0,0" SelectionChanged="UnitCombo_SelectionChanged"/>
+                                <Button x:Name="PauseButton" Grid.Column="3" Style="{StaticResource FlatButton}" Content="Pause" Margin="10,0,0,0" Click="PauseButton_Click"/>
+                                <Button Grid.Column="4" Style="{StaticResource FlatButton}" Content="Export CSV" Margin="10,0,0,0" Click="ExportCsvMenuItem_Click"/>
+                                <CheckBox x:Name="ShowDetailsPanelCheckBox" Grid.Column="5" Content="Details" IsChecked="False" VerticalAlignment="Center" Margin="10,0,0,0" Checked="ShowDetailsPanelCheckBox_Changed" Unchecked="ShowDetailsPanelCheckBox_Changed"/>
+                            </Grid>
+
+                            <Grid DockPanel.Dock="Bottom">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition x:Name="DetailsSplitterCol" Width="0"/>
+                                    <ColumnDefinition x:Name="DetailsCol" Width="0"/>
+                                </Grid.ColumnDefinitions>
+
+                                <DataGrid x:Name="TrafficGrid" Grid.Column="0" Style="{StaticResource TrafficGrid}" ItemsSource="{Binding Rows}" SelectionChanged="TrafficGrid_SelectionChanged" Sorting="TrafficGrid_Sorting">
+
+                                    <DataGrid.Columns>
+                                        <DataGridTemplateColumn x:Name="IconColumn" Header="" Width="28" Visibility="Collapsed" CanUserSort="False">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Image Source="{Binding Icon}" Width="16" Height="16" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+
+                                        <DataGridTextColumn x:Name="PidColumn" Header="PID" Binding="{Binding Pid}" SortMemberPath="Pid" Width="72" />
+
+                                        <DataGridTextColumn x:Name="ProcessColumn" Header="Process" Binding="{Binding ProcessName}" SortMemberPath="ProcessName" Width="*" MinWidth="150" />
+
+                                        <DataGridTextColumn x:Name="CountColumn" Header="Count" Binding="{Binding Count}" SortMemberPath="Count" Width="60" Visibility="Collapsed" ElementStyle="{StaticResource NumberCellText}" />
+
+                                        <DataGridTextColumn x:Name="DownloadColumn" Header="Download KiB/s" Binding="{Binding DownloadPerSecond, StringFormat={}{0:N1}}" SortMemberPath="DownloadPerSecond" Width="140" ElementStyle="{StaticResource NumberCellText}" />
+
+                                        <DataGridTextColumn x:Name="UploadColumn" Header="Upload KiB/s" Binding="{Binding UploadPerSecond, StringFormat={}{0:N1}}" SortMemberPath="UploadPerSecond" Width="130" ElementStyle="{StaticResource NumberCellText}" />
+
+                                        <DataGridTextColumn x:Name="TotalColumn" Header="Total KiB/s" Binding="{Binding TotalPerSecond, StringFormat={}{0:N1}}" SortMemberPath="TotalPerSecond" Width="120">
+                                            <DataGridTextColumn.ElementStyle>
+                                                <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource NumberCellText}">
+                                                    <Setter Property="FontWeight" Value="SemiBold" />
+                                                </Style>
+                                            </DataGridTextColumn.ElementStyle>
+                                        </DataGridTextColumn>
+
+                                        <DataGridTextColumn x:Name="TotalDownloadColumn" Header="Total downloaded" Binding="{Binding TotalDownload, StringFormat={}{0:N1}}" SortMemberPath="TotalDownload" Width="140" Visibility="Collapsed">
+                                            <DataGridTextColumn.ElementStyle>
+                                                <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource NumberCellText}">
+                                                    <Setter Property="Foreground" Value="#059669" />
+                                                </Style>
+                                            </DataGridTextColumn.ElementStyle>
+                                        </DataGridTextColumn>
+
+                                        <DataGridTextColumn x:Name="TotalUploadColumn" Header="Total uploaded" Binding="{Binding TotalUpload, StringFormat={}{0:N1}}" SortMemberPath="TotalUpload" Width="130" Visibility="Collapsed">
+                                            <DataGridTextColumn.ElementStyle>
+                                                <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource NumberCellText}">
+                                                    <Setter Property="Foreground" Value="#7C3AED" />
+                                                </Style>
+                                            </DataGridTextColumn.ElementStyle>
+                                        </DataGridTextColumn>
+
+                                        <DataGridTextColumn x:Name="PeakDownloadColumn" Header="Peak download" Binding="{Binding PeakDownload, StringFormat={}{0:N1}}" SortMemberPath="PeakDownload" Width="130" Visibility="Collapsed">
+                                            <DataGridTextColumn.ElementStyle>
+                                                <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource NumberCellText}">
+                                                    <Setter Property="Foreground" Value="#DC2626" />
+                                                </Style>
+                                            </DataGridTextColumn.ElementStyle>
+                                        </DataGridTextColumn>
+
+                                        <DataGridTextColumn x:Name="PeakUploadColumn" Header="Peak upload" Binding="{Binding PeakUpload, StringFormat={}{0:N1}}" SortMemberPath="PeakUpload" Width="120" Visibility="Collapsed">
+                                            <DataGridTextColumn.ElementStyle>
+                                                <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource NumberCellText}">
+                                                    <Setter Property="Foreground" Value="#EA580C" />
+                                                </Style>
+                                            </DataGridTextColumn.ElementStyle>
+                                        </DataGridTextColumn>
+                                    </DataGrid.Columns>
+
+                                    <DataGrid.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="Copy process name" Click="CopyProcessName_Click" />
+                                            <MenuItem Header="Copy PID" Click="CopyPid_Click" />
+                                            <MenuItem Header="Copy executable path" Click="CopyExePath_Click" />
+                                            <Separator />
+                                            <MenuItem Header="Open file location" Click="OpenFileLocation_Click" />
+                                        </ContextMenu>
+                                    </DataGrid.ContextMenu>
+                                </DataGrid>
+
+                                <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="{StaticResource CardBorderBrush}"/>
+
+                                <Border Grid.Column="2" BorderThickness="1,0,0,0" BorderBrush="{StaticResource CardBorderBrush}">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                        <StackPanel x:Name="DetailsPanel" Margin="12,8">
+                                            <TextBlock Text="Process Details" Style="{StaticResource SectionTitle}" Margin="0,0,0,6"/>
+                                            <TextBlock Text="Name" Style="{StaticResource DetailLabel}"/>
+                                            <TextBlock x:Name="DetailName" Style="{StaticResource DetailValue}" Text="—"/>
+                                            <TextBlock Text="PID" Style="{StaticResource DetailLabel}"/>
+                                            <TextBlock x:Name="DetailPid" Style="{StaticResource DetailValue}" Text="—"/>
+                                            <TextBlock Text="Publisher" Style="{StaticResource DetailLabel}"/>
+                                            <TextBlock x:Name="DetailCompany" Style="{StaticResource DetailValue}" Text="—"/>
+                                            <TextBlock Text="Description" Style="{StaticResource DetailLabel}"/>
+                                            <TextBlock x:Name="DetailDescription" Style="{StaticResource DetailValue}" Text="—"/>
+                                            <TextBlock Text="Executable" Style="{StaticResource DetailLabel}"/>
+                                            <TextBlock x:Name="DetailPath" Style="{StaticResource DetailValue}" Text="—" TextWrapping="Wrap"/>
+                                            <TextBlock Text="Start time" Style="{StaticResource DetailLabel}"/>
+                                            <TextBlock x:Name="DetailStartTime" Style="{StaticResource DetailValue}" Text="—"/>
+                                            <Separator Margin="0,10"/>
+                                            <TextBlock Text="Download" Style="{StaticResource DetailLabel}"/>
+                                            <TextBlock x:Name="DetailDownload" Style="{StaticResource DetailValue}" Text="—"/>
+                                            <TextBlock Text="Upload" Style="{StaticResource DetailLabel}"/>
+                                            <TextBlock x:Name="DetailUpload" Style="{StaticResource DetailValue}" Text="—"/>
+                                            <TextBlock Text="Total downloaded (session)" Style="{StaticResource DetailLabel}"/>
+                                            <TextBlock x:Name="DetailTotalDownload" Style="{StaticResource DetailValue}" Text="—"/>
+                                            <TextBlock Text="Total uploaded (session)" Style="{StaticResource DetailLabel}"/>
+                                            <TextBlock x:Name="DetailTotalUpload" Style="{StaticResource DetailValue}" Text="—"/>
+                                            <TextBlock Text="Peak download" Style="{StaticResource DetailLabel}"/>
+                                            <TextBlock x:Name="DetailPeakDownload" Style="{StaticResource DetailValue}" Text="—"/>
+                                            <TextBlock Text="Peak upload" Style="{StaticResource DetailLabel}"/>
+                                            <TextBlock x:Name="DetailPeakUpload" Style="{StaticResource DetailValue}" Text="—"/>
+                                            <Separator Margin="0,10"/>
+                                            <Button Style="{StaticResource CopyButton}" Content="Copy name" Click="CopyProcessName_Click"/>
+                                            <Button Style="{StaticResource CopyButton}" Content="Copy PID" Click="CopyPid_Click"/>
+                                            <Button Style="{StaticResource CopyButton}" Content="Copy path" Click="CopyExePath_Click"/>
+                                            <Button Style="{StaticResource CopyButton}" Content="Open file location" Click="OpenFileLocation_Click"/>
+                                        </StackPanel>
+                                    </ScrollViewer>
+                                </Border>
+                            </Grid>
+                        </DockPanel>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <TabItem x:Name="ConnectionsTab" Header="Connections">
+                <Grid Margin="0,8,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0" Margin="12,0,12,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock x:Name="ConnectionsTitleText" Text="Active TCP and UDP connections" Style="{StaticResource Hint}" VerticalAlignment="Center"/>
+                            <CheckBox x:Name="FollowSelectedProcessCheckBox" Content="Follow selected process" Margin="16,0,0,0" VerticalAlignment="Center" IsChecked="True" Checked="FollowSelectedProcessCheckBox_Changed" Unchecked="FollowSelectedProcessCheckBox_Changed"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Style="{StaticResource FlatButton}" Content="Refresh" Click="RefreshConnections_Click"/>
+                    </Grid>
+                    <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0">
+                        <DataGrid x:Name="ConnectionsGrid" Style="{StaticResource TrafficGrid}" AutoGenerateColumns="False">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="PID" Binding="{Binding Pid}" Width="72"/>
+                                <DataGridTextColumn Header="Process" Binding="{Binding ProcessName}" Width="160"/>
+                                <DataGridTextColumn Header="Protocol" Binding="{Binding Protocol}" Width="80"/>
+                                <DataGridTextColumn Header="Local endpoint" Binding="{Binding LocalEndpoint}" Width="200"/>
+                                <DataGridTextColumn Header="Remote endpoint" Binding="{Binding RemoteEndpoint}" Width="200"/>
+                                <DataGridTextColumn Header="State" Binding="{Binding State}" Width="130"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </Grid>
+            </TabItem>
+        </TabControl>
     </DockPanel>
 </Window>

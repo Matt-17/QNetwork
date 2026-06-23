@@ -1,0 +1,56 @@
+name: Build
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  windows:
+    name: Windows build
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore QNetwork.slnx
+
+      - name: Build
+        run: dotnet build QNetwork.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test QNetwork.slnx --configuration Release --no-build
+
+      - name: Publish app
+        run: >
+          dotnet publish QNetwork/QNetwork.csproj
+          --configuration Release
+          --runtime win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:PublishReadyToRun=false
+          -o artifacts/publish/QNetwork/Release/win-x64
+
+      - name: Build MSI
+        run: dotnet build QNetwork.Installer/QNetwork.Installer.wixproj --configuration Release
+
+      - name: Upload app artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: QNetwork-win-x64
+          path: artifacts/publish/QNetwork/Release/win-x64/
+
+      - name: Upload MSI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: QNetwork-installer
+          path: QNetwork.Installer/bin/x64/Release/QNetwork-Installer.msi

@@ -1,0 +1,49 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package
+    Name="QNetwork"
+    Manufacturer="Code-iX"
+    Version="$(var.ProductVersion)"
+    UpgradeCode="{60C7E0F4-0162-43B9-A56C-8ED103F94A90}"
+    Scope="perMachine">
+
+    <SummaryInformation Description="QNetwork Installer" Manufacturer="Code-iX" />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of QNetwork is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Icon Id="AppIcon.ico" SourceFile="..\QNetwork\Assets\qnetwork-logo-transparent.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon.ico" />
+
+    <Feature Id="MainFeature" Title="QNetwork" Level="1">
+      <ComponentGroupRef Id="AppComponents" />
+    </Feature>
+  </Package>
+
+  <Fragment>
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="QNetwork" />
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ApplicationProgramsFolder" Name="QNetwork" />
+    </StandardDirectory>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="AppComponents" Directory="INSTALLFOLDER">
+      <Component Id="QNetworkExecutable" Guid="{793F8864-2158-4A8F-85E5-B2088C5C4522}">
+        <File Id="QNetworkExe" Source="$(var.PublishDir)QNetwork.exe" KeyPath="yes" />
+      </Component>
+
+      <Component Id="QNetworkStartMenuShortcut" Directory="ApplicationProgramsFolder" Guid="{44177AA2-AA47-4734-B820-B0E9F9770F93}">
+        <Shortcut
+          Id="QNetworkShortcut"
+          Name="QNetwork"
+          Description="Live per-process network traffic monitor"
+          Target="[INSTALLFOLDER]QNetwork.exe"
+          WorkingDirectory="INSTALLFOLDER"
+          Icon="AppIcon.ico" />
+        <RemoveFolder Id="RemoveApplicationProgramsFolder" On="uninstall" />
+        <RegistryValue Root="HKCU" Key="Software\Code-iX\QNetwork" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>

@@ -6,5 +6,7 @@ public enum TrafficSortColumn
     ProcessName,
     Received,
     Sent,
-    Total
+    Total,
+    TotalReceived,
+    TotalSent
 }
