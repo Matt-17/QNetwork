@@ -4,6 +4,8 @@
   <Project Path="QNetwork.Cli/QNetwork.Cli.csproj" />
   <Project Path="QNetwork.Installer/QNetwork.Installer.wixproj" Type="b7dd6f7e-def8-4e67-b5b7-07ef123db6f0">
     <Platform Project="x64" />
+    <!-- Excluded from solution builds; the MSI is produced by the dedicated "Build MSI" CI step. -->
+    <Build Project="false" />
   </Project>
   <Project Path="QNetwork.Tests/QNetwork.Tests.csproj" />
 </Solution>
