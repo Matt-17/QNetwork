@@ -41,7 +41,14 @@ jobs:
         run: dotnet restore QNetwork.slnx
 
       - name: Build
-        run: dotnet build QNetwork.slnx --configuration Release --no-restore --disable-build-servers /p:UseSharedCompilation=false
+        run: >
+          dotnet build QNetwork.slnx
+          --configuration Release
+          --no-restore
+          --disable-build-servers
+          /m:1
+          /p:BuildInParallel=false
+          -p:UseSharedCompilation=false
 
       - name: Test
         run: dotnet test QNetwork.slnx --configuration Release --no-build --disable-build-servers
