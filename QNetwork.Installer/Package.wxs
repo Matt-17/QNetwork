@@ -29,9 +29,13 @@
 
   <Fragment>
     <ComponentGroup Id="AppComponents" Directory="INSTALLFOLDER">
-      <Component Id="QNetworkExecutable" Guid="{793F8864-2158-4A8F-85E5-B2088C5C4522}">
-        <File Id="QNetworkExe" Source="$(var.PublishDir)QNetwork.exe" KeyPath="yes" />
-      </Component>
+      <!-- Harvest the full publish output. A self-contained single-file WPF build
+           still emits native sibling DLLs (wpfgfx_cor3.dll, PresentationNative_cor3.dll,
+           amd64\KernelTraceControl.dll, ...) that must ship next to the exe, otherwise
+           WPF cannot initialise and the app exits before showing a window. -->
+      <Files Include="$(var.PublishDir)**">
+        <Exclude Files="$(var.PublishDir)**\*.pdb" />
+      </Files>
 
       <Component Id="QNetworkStartMenuShortcut" Directory="ApplicationProgramsFolder" Guid="{44177AA2-AA47-4734-B820-B0E9F9770F93}">
         <Shortcut

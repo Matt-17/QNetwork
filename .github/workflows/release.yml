@@ -12,6 +12,8 @@ jobs:
   release:
     name: Publish release artifacts
     runs-on: windows-latest
+    env:
+      WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
 
     steps:
       - name: Check out repository
@@ -87,11 +89,11 @@ jobs:
           files: ${{ steps.collect_msi.outputs.path }}
 
       - name: Submit or update Winget package
-        if: ${{ secrets.WINGET_TOKEN != '' }}
+        if: ${{ env.WINGET_TOKEN != '' }}
         uses: vedantmgoyal2009/winget-releaser@v2
         with:
           identifier: Code-iX.QNetwork
           installers-regex: '^QNetwork-\d+\.\d+\.\d+-x64\.msi$'
           release-tag: ${{ github.ref_name }}
           package-version: ${{ steps.resolve_version.outputs.version }}
-          token: ${{ secrets.WINGET_TOKEN }}
+          token: ${{ env.WINGET_TOKEN }}

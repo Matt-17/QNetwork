@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="About QNetwork"
         Width="520"
-        Height="420"
+        Height="520"
         ResizeMode="NoResize"
         SizeToContent="Height"        
         WindowStartupLocation="CenterOwner"
