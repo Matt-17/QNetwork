@@ -99,12 +99,29 @@ jobs:
           body_path: release-notes.md
           files: ${{ steps.collect_msi.outputs.path }}
 
-      - name: Submit or update Winget package
+      - name: Check Winget package registration
+        id: winget_package
         if: ${{ env.WINGET_TOKEN != '' }}
+        shell: pwsh
+        run: |
+          $packageId = "Code-iX.QNetwork"
+          $packagePath = "manifests/$($packageId.ToLowerInvariant()[0])/$($packageId.Replace('.', '/'))"
+          $url = "https://github.com/microsoft/winget-pkgs/tree/master/$packagePath"
+          try {
+            Invoke-WebRequest -Uri $url -Method Head -UseBasicParsing -ErrorAction Stop | Out-Null
+            echo "exists=true" >> $env:GITHUB_OUTPUT
+          }
+          catch {
+            Write-Warning "$packageId is not in winget-pkgs yet. Submit the first version manually with wingetcreate; automated updates will run after it is merged."
+            echo "exists=false" >> $env:GITHUB_OUTPUT
+          }
+
+      - name: Submit or update Winget package
+        if: ${{ env.WINGET_TOKEN != '' && steps.winget_package.outputs.exists == 'true' }}
         uses: vedantmgoyal2009/winget-releaser@v2
         with:
           identifier: Code-iX.QNetwork
           installers-regex: '^QNetwork-\d+\.\d+\.\d+-x64\.msi$'
           release-tag: ${{ github.ref_name }}
-          package-version: ${{ steps.resolve_version.outputs.version }}
+          version: ${{ steps.resolve_version.outputs.version }}
           token: ${{ env.WINGET_TOKEN }}
