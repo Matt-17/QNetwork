@@ -519,7 +519,7 @@ public partial class MainWindow : Window
             Hide();
             trayIcon.Visible = true;
             trayIcon.ShowBalloonTip(
-                2000, "QNetwork", "Running in the background.", Forms.ToolTipIcon.Info);
+                2500, "QNetwork", "Closing hides QNetwork to tray. Use File > Exit to quit.", Forms.ToolTipIcon.Info);
             return;
         }
 
@@ -733,6 +733,8 @@ public partial class MainWindow : Window
 
         if (ShowDetailsPanelCheckBox.IsChecked == true)
             UpdateDetailsForSelectedRow();
+
+        UpdateStatusOnly();
     }
 
     private void ClearTrafficState()
@@ -844,32 +846,95 @@ public partial class MainWindow : Window
             : $"{top.ProcessName} {FormatBps(top.TotalBps)}";
     }
 
+    private string CurrentDataUnitLabel => currentUnit.Label.EndsWith("/s", StringComparison.Ordinal)
+        ? currentUnit.Label[..^2]
+        : currentUnit.Label;
+
+    private string BuildStatusText()
+    {
+        string filterText = string.IsNullOrWhiteSpace(SearchBox.Text)
+            ? "Search: none"
+            : $"Search: {SearchBox.Text}";
+
+        string adapterText = selectedAdapterName is null
+            ? "All adapters"
+            : selectedAdapterName;
+
+        string sampleText = isStarted
+            ? $"Last sample: {lastSampleAt:HH:mm:ss} ({lastSampleSeconds:0.0}s)"
+            : "Last sample: not started";
+
+        string stateText = isPaused ? "Paused" : isStarted ? "Live" : "Stopped";
+        string emptyText = rows.Count == 0 && isStarted
+            ? " | No active traffic in this sample. Try disabling Hide idle, selecting All adapters, or generating network activity."
+            : string.Empty;
+        string trayText = minimizeToTray
+            ? " | Closing hides to tray; use File > Exit to quit."
+            : string.Empty;
+
+        return $"{stateText} | Adapter: {adapterText} | {sampleText} | Unit: {currentUnit.Label} | {filterText}{emptyText}{trayText}";
+    }
+
     private void UpdateStatusOnly()
     {
         if (!isInitialized)
             return;
 
         UptimeText.Text = (DateTime.Now - startedAt).ToString(@"hh\:mm\:ss");
+        StateStatusText.Text = isPaused ? "Paused" : isStarted ? "Live" : "Stopped";
+        StateStatusBadge.Background = isPaused
+            ? new SolidColorBrush(Color.FromRgb(0xFE, 0xF3, 0xC7))
+            : isStarted
+                ? new SolidColorBrush(Color.FromRgb(0xD1, 0xFA, 0xE5))
+                : new SolidColorBrush(Color.FromRgb(0xFE, 0xE2, 0xE2));
+        StateStatusText.Foreground = isPaused
+            ? new SolidColorBrush(Color.FromRgb(0x92, 0x45, 0x00))
+            : isStarted
+                ? new SolidColorBrush(Color.FromRgb(0x06, 0x5F, 0x46))
+                : new SolidColorBrush(Color.FromRgb(0x99, 0x1B, 0x1B));
+        AdapterStatusText.Text = selectedAdapterName is null
+            ? "Adapter: All adapters"
+            : $"Adapter: {selectedAdapterName}";
+        SampleStatusText.Text = isStarted
+            ? $"Last sample: {lastSampleAt:HH:mm:ss} ({lastSampleSeconds:0.0}s)"
+            : "Last sample: not started";
+        UnitStatusText.Text = $"Unit: {currentUnit.Label}";
+        TrayStatusText.Text = minimizeToTray
+            ? "Close: hides to tray"
+            : "Close: exits";
 
-        string filterText = string.IsNullOrWhiteSpace(SearchBox.Text)
-            ? "no search"
-            : $"search '{SearchBox.Text}'";
+        UpdateTrafficEmptyState();
+    }
+
+    private void UpdateTrafficEmptyState()
+    {
+        if (!isInitialized)
+            return;
 
         string adapterText = selectedAdapterName is null
-            ? "all adapters"
+            ? "All adapters"
             : selectedAdapterName;
 
-        string pausedText = isPaused ? "PAUSED | " : string.Empty;
+        TrafficEmptyStateText.Text =
+            $"No active traffic for {adapterText}. Try disabling Hide idle, selecting All adapters, or generating network activity.";
+        TrafficEmptyStateBorder.Visibility = rows.Count == 0 && isStarted
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+    }
 
-        StatusText.Text =
-            $"{pausedText}{filterText} | unit {currentUnit.Label} | adapter {adapterText}";
+    private void SetAlertStatus(string? message)
+    {
+        bool hasAlert = !string.IsNullOrWhiteSpace(message);
+        AlertStatusText.Text = message ?? string.Empty;
+        AlertStatusText.Visibility = hasAlert ? Visibility.Visible : Visibility.Collapsed;
+        StatusText.Visibility = hasAlert ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private void CheckAlertThreshold()
     {
         if (alertThresholdBytesPerSecond <= 0)
         {
-            AlertStatusText.Text = string.Empty;
+            SetAlertStatus(null);
             alertFired = false;
             alertStates.Clear();
             return;
@@ -880,7 +945,7 @@ public partial class MainWindow : Window
 
         if (highest is null)
         {
-            AlertStatusText.Text = string.Empty;
+            SetAlertStatus(null);
             return;
         }
 
@@ -897,8 +962,7 @@ public partial class MainWindow : Window
             if (now - state.FirstAbove.Value < AlertHoldDuration)
                 return;
 
-            AlertStatusText.Text =
-                $"ALERT: {highest.ProcessName} {FormatBps(highest.TotalBps)} exceeds {FormatBps(alertThresholdBytesPerSecond)}";
+            SetAlertStatus($"ALERT: {highest.ProcessName} {FormatBps(highest.TotalBps)} exceeds {FormatBps(alertThresholdBytesPerSecond)}");
 
             if (!alertFired || now - state.LastNotification >= AlertCooldown)
             {
@@ -913,7 +977,7 @@ public partial class MainWindow : Window
         }
         else
         {
-            AlertStatusText.Text = string.Empty;
+            SetAlertStatus(null);
             alertFired = false;
             if (alertStates.TryGetValue(highest.Key, out AlertState? state))
                 state.FirstAbove = null;
@@ -1226,7 +1290,7 @@ public partial class MainWindow : Window
         else
         {
             selectedProcessKey = null;
-            ChartTitleText.Text = "Traffic history (last 60 s)";
+            ChartTitleText.Text = "Traffic history (last 60 s) - select a row for process details";
         }
 
         UpdateDetailsForSelectedRow();
@@ -1256,8 +1320,8 @@ public partial class MainWindow : Window
         DetailPid.Text = selected.Pid > 0 ? selected.Pid.ToString() : "(multiple)";
         DetailDownload.Text = $"{selected.DownloadPerSecond:N1} {currentUnit.Label}";
         DetailUpload.Text = $"{selected.UploadPerSecond:N1} {currentUnit.Label}";
-        DetailTotalDownload.Text = $"{selected.TotalDownload:N2} {currentUnit.Label}";
-        DetailTotalUpload.Text = $"{selected.TotalUpload:N2} {currentUnit.Label}";
+        DetailTotalDownload.Text = $"{selected.TotalDownload:N2} {CurrentDataUnitLabel}";
+        DetailTotalUpload.Text = $"{selected.TotalUpload:N2} {CurrentDataUnitLabel}";
         DetailPeakDownload.Text = $"{selected.PeakDownload:N1} {currentUnit.Label}";
         DetailPeakUpload.Text = $"{selected.PeakUpload:N1} {currentUnit.Label}";
 
@@ -1378,8 +1442,9 @@ public partial class MainWindow : Window
         DownloadColumn.Header = FormatHeader($"Download {suffix}", nameof(TrafficRowView.DownloadPerSecond));
         UploadColumn.Header = FormatHeader($"Upload {suffix}", nameof(TrafficRowView.UploadPerSecond));
         TotalColumn.Header = FormatHeader($"Total {suffix}", nameof(TrafficRowView.TotalPerSecond));
-        TotalDownloadColumn.Header = FormatHeader("Total downloaded", nameof(TrafficRowView.TotalDownload));
-        TotalUploadColumn.Header = FormatHeader("Total uploaded", nameof(TrafficRowView.TotalUpload));
+        string dataSuffix = CurrentDataUnitLabel;
+        TotalDownloadColumn.Header = FormatHeader($"Total downloaded {dataSuffix}", nameof(TrafficRowView.TotalDownload));
+        TotalUploadColumn.Header = FormatHeader($"Total uploaded {dataSuffix}", nameof(TrafficRowView.TotalUpload));
         PeakDownloadColumn.Header = FormatHeader($"Peak download {suffix}", nameof(TrafficRowView.PeakDownload));
         PeakUploadColumn.Header = FormatHeader($"Peak upload {suffix}", nameof(TrafficRowView.PeakUpload));
 
@@ -1480,6 +1545,7 @@ public partial class MainWindow : Window
         }
 
         alertFired = false;
+        SetAlertStatus(null);
     }
 
     private void MinimizeToTrayMenuItem_Changed(object sender, RoutedEventArgs e)
@@ -1489,6 +1555,7 @@ public partial class MainWindow : Window
         minimizeToTray = MinimizeToTrayMenuItem.IsChecked;
         if (trayIcon is not null)
             trayIcon.Visible = minimizeToTray && WindowState == WindowState.Minimized;
+        UpdateStatusOnly();
     }
 
     private void ExportCsvMenuItem_Click(object sender, RoutedEventArgs e)
@@ -1506,8 +1573,9 @@ public partial class MainWindow : Window
 
         try
         {
-            ExportToCsv(dialog.FileName);
-            StatusText.Text = $"Exported to {dialog.FileName}";
+            int exportedRows = ExportToCsv(dialog.FileName);
+            StatusText.Text = $"Exported {exportedRows:N0} rows to {dialog.FileName}";
+            UpdateStatusOnly();
         }
         catch (Exception ex)
         {
@@ -1516,11 +1584,12 @@ public partial class MainWindow : Window
         }
     }
 
-    private void ExportToCsv(string filePath)
+    private int ExportToCsv(string filePath)
     {
         var sb = new StringBuilder();
         string unit = currentUnit.Label;
-        sb.AppendLine($"PID,Process,Count,\"Download ({unit})\",\"Upload ({unit})\",\"Total ({unit})\",\"Session DL ({unit})\",\"Session UL ({unit})\",\"Peak DL ({unit})\",\"Peak UL ({unit})\"");
+        string dataUnit = CurrentDataUnitLabel;
+        sb.AppendLine($"PID,Process,Count,\"Download ({unit})\",\"Upload ({unit})\",\"Total ({unit})\",\"Session DL ({dataUnit})\",\"Session UL ({dataUnit})\",\"Peak DL ({unit})\",\"Peak UL ({unit})\"");
 
         static string Csv(double value) =>
             value.ToString("F2", CultureInfo.InvariantCulture);
@@ -1540,6 +1609,7 @@ public partial class MainWindow : Window
         }
 
         File.WriteAllText(filePath, sb.ToString(), Encoding.UTF8);
+        return rows.Count;
     }
 
     private void RefreshConnections_Click(object sender, RoutedEventArgs e)
@@ -1583,12 +1653,13 @@ public partial class MainWindow : Window
 
             lastConnectionRefresh = DateTime.Now;
             string adapterText = selectedAdapterName is null ? "all adapters" : selectedAdapterName;
-            string followText = FollowSelectedProcessCheckBox.IsChecked == true &&
-                TrafficGrid.SelectedItem is TrafficRowView row
-                    ? $" for {row.ProcessName}"
-                    : string.Empty;
+            string followText = FollowSelectedProcessCheckBox.IsChecked == true
+                ? TrafficGrid.SelectedItem is TrafficRowView row
+                    ? $"filtered to {row.ProcessName}"
+                    : "follow selected process is on; select a traffic row to filter"
+                : "showing all processes";
             ConnectionsTitleText.Text =
-                $"Active TCP and UDP connections{followText} ({adapterText}, {conns.Count:N0})";
+                $"Active TCP and UDP connections ({adapterText}, {conns.Count:N0}) - {followText}";
         }
         catch (Exception ex)
         {

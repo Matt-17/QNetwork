@@ -68,24 +68,60 @@
             </MenuItem>
         </Menu>
 
-        <ToolBar DockPanel.Dock="Top" Band="0" BandIndex="0">
+        <ToolBar DockPanel.Dock="Top" Band="0" BandIndex="0" Background="#F9FAFB" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="0,0,0,1">
+            <ToolBar.Resources>
+                <Style TargetType="{x:Type ToolBar}">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type ToolBar}">
+                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                    <ToolBarPanel IsItemsHost="True" Margin="6,3"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ToolBar.Resources>
             <Label Content="Adapter:" VerticalAlignment="Center"/>
             <ComboBox x:Name="AdapterCombo" MinWidth="160" VerticalContentAlignment="Center" SelectionChanged="AdapterCombo_SelectionChanged"/>
             <Separator/>
             <Label Content="Alert threshold:" VerticalAlignment="Center"/>
-            <TextBox x:Name="ThresholdBox" Width="60" VerticalContentAlignment="Center" ToolTip="Set to 0 to disable. Fires when total traffic exceeds this rate." TextChanged="ThresholdBox_TextChanged"/>
+            <TextBox x:Name="ThresholdBox" Width="60" VerticalContentAlignment="Center" ToolTip="Set to 0 to disable. Alerts when total traffic exceeds this rate for 2 seconds." TextChanged="ThresholdBox_TextChanged"/>
             <ComboBox x:Name="ThresholdUnitCombo" MinWidth="80" VerticalContentAlignment="Center" SelectionChanged="ThresholdUnitCombo_SelectionChanged"/>
         </ToolBar>
 
-        <StatusBar DockPanel.Dock="Bottom">
-            <StatusBarItem>
-                <TextBlock x:Name="StatusText"/>
-            </StatusBarItem>
-            <Separator/>
-            <StatusBarItem>
-                <TextBlock x:Name="AlertStatusText" Foreground="OrangeRed" FontWeight="SemiBold"/>
-            </StatusBarItem>
-        </StatusBar>
+        <Border DockPanel.Dock="Bottom" Height="28" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="0,1,0,0" Background="#F9FAFB">
+            <StatusBar Background="Transparent" VerticalAlignment="Stretch">
+                <StatusBarItem Width="70" Padding="4,0" HorizontalContentAlignment="Left">
+                    <Border x:Name="StateStatusBadge" Padding="6,2" Background="#FEE2E2" CornerRadius="4" HorizontalAlignment="Center">
+                        <TextBlock x:Name="StateStatusText" Text="Stopped" FontWeight="SemiBold" Foreground="#991B1B"/>
+                    </Border>
+                </StatusBarItem>
+                <Separator/>
+                <StatusBarItem Width="190">
+                    <TextBlock x:Name="AdapterStatusText" Text="Adapter: All adapters" TextTrimming="CharacterEllipsis"/>
+                </StatusBarItem>
+                <Separator/>
+                <StatusBarItem Width="185">
+                    <TextBlock x:Name="SampleStatusText" Text="Last sample: not started" TextTrimming="CharacterEllipsis"/>
+                </StatusBarItem>
+                <Separator/>
+                <StatusBarItem Width="95">
+                    <TextBlock x:Name="UnitStatusText" Text="Unit: KiB/s" TextTrimming="CharacterEllipsis"/>
+                </StatusBarItem>
+                <Separator/>
+                <StatusBarItem Width="110">
+                    <TextBlock x:Name="TrayStatusText" Text="Close: exits" TextTrimming="CharacterEllipsis"/>
+                </StatusBarItem>
+                <Separator/>
+                <StatusBarItem>
+                    <Grid MinWidth="260">
+                        <TextBlock x:Name="StatusText" Foreground="{StaticResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock x:Name="AlertStatusText" Foreground="OrangeRed" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Visibility="Collapsed"/>
+                    </Grid>
+                </StatusBarItem>
+            </StatusBar>
+        </Border>
 
         <TabControl x:Name="MainTabControl" Margin="12,6,12,12" SelectionChanged="MainTabControl_SelectionChanged">
             <TabItem Header="Traffic">
@@ -142,7 +178,7 @@
                         </Border>
                     </Grid>
 
-                    <TextBlock Grid.Row="1" Margin="12,0,12,4" x:Name="ChartTitleText" Text="Traffic history (last 60 s)" Style="{StaticResource Hint}" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="1" Margin="12,0,12,4" x:Name="ChartTitleText" Text="Traffic history (last 60 s) - select a row for process details" Style="{StaticResource Hint}" VerticalAlignment="Center"/>
 
                     <Border Grid.Row="2" Style="{StaticResource Card}" Margin="12,0,12,8" x:Name="ChartBorder">
                         <Canvas x:Name="HistoryCanvas" ClipToBounds="True" SizeChanged="HistoryCanvas_SizeChanged"/>
@@ -258,6 +294,9 @@
                                         </ContextMenu>
                                     </DataGrid.ContextMenu>
                                 </DataGrid>
+                                    <Border x:Name="TrafficEmptyStateBorder" Grid.Column="0" Margin="24" Padding="18" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#F9FAFB" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Visibility="Collapsed">
+                                        <TextBlock x:Name="TrafficEmptyStateText" TextWrapping="Wrap" MaxWidth="420" TextAlignment="Center" Foreground="{StaticResource MutedBrush}"/>
+                                    </Border>
 
                                 <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="{StaticResource CardBorderBrush}"/>
 

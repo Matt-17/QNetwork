@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
   <Package
     Name="QNetwork"
@@ -12,6 +13,9 @@
 
     <Icon Id="AppIcon.ico" SourceFile="..\QNetwork\Assets\qnetwork-logo-transparent.ico" />
     <Property Id="ARPPRODUCTICON" Value="AppIcon.ico" />
+    <Property Id="ARPCOMMENTS" Value="Live per-process network traffic monitor. Requires administrator rights when launched." />
+    <Property Id="ARPHELPLINK" Value="https://github.com/Matt-17/QNetwork/issues" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/Matt-17/QNetwork" />
 
     <Feature Id="MainFeature" Title="QNetwork" Level="1">
       <ComponentGroupRef Id="AppComponents" />
@@ -20,32 +24,54 @@
 
   <Fragment>
     <StandardDirectory Id="ProgramFiles64Folder">
-      <Directory Id="INSTALLFOLDER" Name="QNetwork" />
+      <Directory Id="INSTALLFOLDER" Name="QNetwork">
+        <Directory Id="Amd64Folder" Name="amd64" />
+        <Directory Id="Arm64Folder" Name="arm64" />
+        <Directory Id="X86Folder" Name="x86" />
+      </Directory>
     </StandardDirectory>
-    <StandardDirectory Id="ProgramMenuFolder">
-      <Directory Id="ApplicationProgramsFolder" Name="QNetwork" />
-    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder" />
   </Fragment>
 
   <Fragment>
     <ComponentGroup Id="AppComponents" Directory="INSTALLFOLDER">
-      <!-- Harvest the full publish output. A self-contained single-file WPF build
-           still emits native sibling DLLs (wpfgfx_cor3.dll, PresentationNative_cor3.dll,
-           amd64\KernelTraceControl.dll, ...) that must ship next to the exe, otherwise
-           WPF cannot initialise and the app exits before showing a window. -->
-      <Files Include="$(var.PublishDir)**">
-        <Exclude Files="$(var.PublishDir)**\*.pdb" />
-      </Files>
+      <Component Id="MainExecutable" Guid="{8EE012E5-2ED4-43D7-B59F-E09270E7A94F}">
+        <File Id="QNetworkExe" Source="$(var.PublishDir)\QNetwork.exe" />
+        <File Id="D3DCompiler47" Source="$(var.PublishDir)\D3DCompiler_47_cor3.dll" />
+        <File Id="PenImc" Source="$(var.PublishDir)\PenImc_cor3.dll" />
+        <File Id="PresentationNative" Source="$(var.PublishDir)\PresentationNative_cor3.dll" />
+        <File Id="Vcruntime140" Source="$(var.PublishDir)\vcruntime140_cor3.dll" />
+        <File Id="WpfGfx" Source="$(var.PublishDir)\wpfgfx_cor3.dll" />
+        <RegistryValue Root="HKLM" Key="Software\Code-iX\QNetwork" Name="InstallFolder" Type="string" Value="[INSTALLFOLDER]" KeyPath="yes" />
+      </Component>
 
-      <Component Id="QNetworkStartMenuShortcut" Directory="ApplicationProgramsFolder" Guid="{44177AA2-AA47-4734-B820-B0E9F9770F93}">
+      <Component Id="Amd64NativeFiles" Directory="Amd64Folder" Guid="{46F4D1E5-B8FD-4E18-A945-0E1882B3B26E}">
+        <File Id="Amd64KernelTraceControl" Source="$(var.PublishDir)\amd64\KernelTraceControl.dll" />
+        <File Id="Amd64Msdia140" Source="$(var.PublishDir)\amd64\msdia140.dll" />
+        <RegistryValue Root="HKLM" Key="Software\Code-iX\QNetwork" Name="Amd64NativeFiles" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+
+      <Component Id="Arm64NativeFiles" Directory="Arm64Folder" Guid="{3D4E6E76-740B-496C-B711-EB8D93E8D4C4}">
+        <File Id="Arm64KernelTraceControl" Source="$(var.PublishDir)\arm64\KernelTraceControl.dll" />
+        <File Id="Arm64Msdia140" Source="$(var.PublishDir)\arm64\msdia140.dll" />
+        <RegistryValue Root="HKLM" Key="Software\Code-iX\QNetwork" Name="Arm64NativeFiles" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+
+      <Component Id="X86NativeFiles" Directory="X86Folder" Guid="{64813F18-7B6E-4210-BD5B-B27275F5F614}">
+        <File Id="X86KernelTraceControl" Source="$(var.PublishDir)\x86\KernelTraceControl.dll" />
+        <File Id="X86KernelTraceControlWin61" Source="$(var.PublishDir)\x86\KernelTraceControl.Win61.dll" />
+        <File Id="X86Msdia140" Source="$(var.PublishDir)\x86\msdia140.dll" />
+        <RegistryValue Root="HKLM" Key="Software\Code-iX\QNetwork" Name="X86NativeFiles" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+
+      <Component Id="StartMenuShortcut" Directory="ProgramMenuFolder" Guid="{44177AA2-AA47-4734-B820-B0E9F9770F93}">
         <Shortcut
-          Id="QNetworkShortcut"
+          Id="AppShortcut"
           Name="QNetwork"
           Description="Live per-process network traffic monitor"
           Target="[INSTALLFOLDER]QNetwork.exe"
           WorkingDirectory="INSTALLFOLDER"
           Icon="AppIcon.ico" />
-        <RemoveFolder Id="RemoveApplicationProgramsFolder" On="uninstall" />
         <RegistryValue Root="HKCU" Key="Software\Code-iX\QNetwork" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
       </Component>
     </ComponentGroup>

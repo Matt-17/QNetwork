@@ -10,9 +10,10 @@
   </PropertyGroup>
 
   <Target Name="PublishQNetworkForInstaller" BeforeTargets="BeforeBuild">
+    <RemoveDir Directories="$(PublishDir)" />
     <MSBuild Projects="..\QNetwork\QNetwork.csproj"
              Targets="Restore;Publish"
-             Properties="Configuration=$(Configuration);RuntimeIdentifier=win-x64;SelfContained=true;PublishSingleFile=true;PublishReadyToRun=false;PublishDir=$(PublishDir)" />
+             Properties="Configuration=$(Configuration);RuntimeIdentifier=win-x64;SelfContained=true;PublishSingleFile=true;PublishReadyToRun=false;PublishDir=$(PublishDir);UseSharedCompilation=false" />
   </Target>
 
 </Project>

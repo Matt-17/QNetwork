@@ -83,9 +83,24 @@ internal static class Program
 
     private static async Task<int> Main(string[] args)
     {
+        bool help = args.Contains("--help", StringComparer.OrdinalIgnoreCase) ||
+            args.Contains("-h", StringComparer.OrdinalIgnoreCase) ||
+            args.Contains("/?", StringComparer.OrdinalIgnoreCase);
         bool elevate = args.Contains("--elevate", StringComparer.OrdinalIgnoreCase);
         bool once = args.Contains("--once", StringComparer.OrdinalIgnoreCase);
         bool json = args.Contains("--json", StringComparer.OrdinalIgnoreCase);
+
+        if (help)
+        {
+            WriteUsage();
+            return 0;
+        }
+
+        if (json && !once)
+        {
+            await Console.Error.WriteLineAsync("Use --json together with --once.");
+            return 1;
+        }
 
         if (!NetworkTrafficMonitor.IsSupportedPlatform)
         {
@@ -111,6 +126,23 @@ internal static class Program
         return once
             ? await RunOnce(json).ConfigureAwait(false)
             : await RunInteractive().ConfigureAwait(false);
+    }
+
+    private static void WriteUsage()
+    {
+        Console.WriteLine("QNetwork.Cli - live per-process network traffic monitor");
+        Console.WriteLine();
+        Console.WriteLine("Usage:");
+        Console.WriteLine("  QNetwork.Cli [--elevate]");
+        Console.WriteLine("  QNetwork.Cli --once [--json] [--elevate]");
+        Console.WriteLine();
+        Console.WriteLine("Options:");
+        Console.WriteLine("  --elevate   Restart through UAC when administrator rights are required.");
+        Console.WriteLine("  --once      Capture one sample and exit.");
+        Console.WriteLine("  --json      Emit the --once sample as JSON.");
+        Console.WriteLine("  --help      Show this help.");
+        Console.WriteLine();
+        Console.WriteLine("Administrator rights are required for ETW kernel tracing.");
     }
 
     private static async Task<int> RunOnce(bool json)

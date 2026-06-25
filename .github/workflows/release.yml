@@ -81,11 +81,22 @@ jobs:
           }
           echo "path=$msi" >> $env:GITHUB_OUTPUT
 
+      - name: Extract release notes from tag
+        shell: pwsh
+        run: |
+          git fetch --force --tags
+          $notes = git tag -l "${{ github.ref_name }}" --format="%(contents)"
+          if ([string]::IsNullOrWhiteSpace($notes)) {
+            $notes = "QNetwork ${{ steps.resolve_version.outputs.version }}"
+          }
+          $notes | Out-File -FilePath release-notes.md -Encoding utf8
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
+          body_path: release-notes.md
           files: ${{ steps.collect_msi.outputs.path }}
 
       - name: Submit or update Winget package
